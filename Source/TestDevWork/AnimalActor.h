@@ -3,12 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameStructs.h"
 #include "GameFramework/Character.h"
 #include "AnimalActor.generated.h"
 
+class UBehaviorTree;
 class ALocationMarkerActor;
 class USkeletalMeshComponent;
 class UAudioComponent;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActorSpawn, EMovementType, MovementType);
 
 UCLASS()
 class TESTDEVWORK_API AAnimalActor : public ACharacter
@@ -16,47 +20,30 @@ class TESTDEVWORK_API AAnimalActor : public ACharacter
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
 	AAnimalActor();
 
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaSeconds) override;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI|Components")
+	EMovementType MovementType = EMovementType::Move;
+
+	UBehaviorTree* GetBehaviorTree() const;
 	
 	void DestroyAnimal();
 
-	void SetFinishTarget(ALocationMarkerActor* Marker);
+	UFUNCTION(BlueprintCallable, Category = "FinishEffectS")
+	void SetPlaySoundAtFinish();
 
-	void MoveForward(float Value);
-	void MoveRight(float Value);
-	void RotateRight(float Value);
-
-	UFUNCTION()
-	float GetAccurency() { return MovementAccurency; }
-	UFUNCTION()
-	FVector GetFinishPoint();
+	UFUNCTION(BlueprintCallable, Category = "AI|Spawn")
+	void SetMoveTypeWhenSpawn(EMovementType MoveType);
 	
+	FOnActorSpawn OnActorSpawn;
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "AnimalEffects")
-	UAudioComponent* AnimalSoundEffect;
+	UAudioComponent* FinishSoundEffect;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FinishTarget", Meta = (MakeEditWidget = true))
-	ALocationMarkerActor* FinishTarget;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Components")
-	float MovementAccurency = 1.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Components")
-	float MoveSpeed = 10.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Components")
-	float InterpolationSpeed = 0.1f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Components")
-	float RotationSpeed = 5.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI|Components")
+	UBehaviorTree* BehaviorTree;
 
 private:
-	float ForwardAxisValue = 0.0f;
-	float RightAxisValue = 0.0f;
-	float RotateRightAxisValue = 0.0f;
-	float CurrentRotateValue = 0.0f;
+	bool bIsAlreadyPlayFinishSound = false;
 };

@@ -3,7 +3,7 @@
 
 #include "AnimalSpawner.h"
 #include "AnimalActor.h"
-#include "ClickButton.h"
+#include "AnimalAIController.h"
 #include "LocationMarkerActor.h"
 #include "Components/ArrowComponent.h"
 #include "Components/AudioComponent.h"
@@ -21,46 +21,89 @@ AAnimalSpawner::AAnimalSpawner()
 	SpawnerMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SpawnerMesh"));
 	SpawnerMesh->SetupAttachment(SceneComponent);
 
+	VisualMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("VisualMesh"));
+	VisualMesh->SetupAttachment(SpawnerMesh);
+
 	ArrowSpawnPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("SpawnPoint"));
 	ArrowSpawnPoint->AttachToComponent(SceneComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
-	/*FinishTarget = CreateDefaultSubobject<ALocationMarkerActor>(TEXT("FinishTarget"));
-	FinishTarget->AttachToComponent(SceneComponent, FAttachmentTransformRules::KeepRelativeTransform);*/
-
 	SpawnAudioEffect = CreateDefaultSubobject<UAudioComponent>(TEXT("SpawnAudioEffect"));
 	SpawnAudioEffect->SetAutoActivate(false);
+	SpawnAudioEffect->AttachToComponent(ArrowSpawnPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	SpawnParticleEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("SpawnParticleEffect"));
 	SpawnParticleEffect->SetAutoActivate(false);
-	SpawnParticleEffect->SetupAttachment(ArrowSpawnPoint);
-	
 }
 
 void AAnimalSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 
-	/*ButtonSpawn(ButtonClass);*/
+	if (IsValid(AnimalActor))
+	{
+		AnimalActor->OnActorSpawn.AddDynamic(this, &AAnimalSpawner::SpawnAnimal);	
+	}
 }
 
-void AAnimalSpawner::SpawnAnimal()
+void AAnimalSpawner::SetBehaviorValue(AAnimalActor* Actor)
 {
-	if (bIsAlreadySpawn)
+	AAnimalAIController* AIController = Cast<AAnimalAIController>(Actor->GetController());
+	if (AIController)
+	{
+		AIController->SetBehaviorValue(GetActorLocation(), FinishTarget->GetActorLocation(), Actor->MovementType);
+	}
+}
+
+
+void AAnimalSpawner::PlayEffects()
+{
+	if (SpawnParticleEffect)
+	{
+		SpawnParticleEffect->ActivateSystem(true);
+		SpawnParticleEffect->SetWorldLocation(GetActorLocation());
+		SpawnParticleEffect->SetWorldRotation(GetActorRotation());
+	}
+	if (FinishParticleEffect)
+	{
+		FinishParticleEffect->ActivateSystem(true);
+		FinishParticleEffect->SetWorldLocation(FinishTarget->GetActorLocation());
+		FinishParticleEffect->SetWorldRotation(GetActorRotation());
+	}
+
+	if (SpawnAudioEffect)
+		SpawnAudioEffect->Play();
+}
+
+void AAnimalSpawner::SpawnAnimal(EMovementType MoveType)
+{
+	if (!IsValid(AnimalClass) && bIsAlreadySpawn && MovementType != MoveType)
 	{
 		return;
 	}
-
-	if (AnimalClass)
+	
+	if (!AnimalActor)
 	{
-		FTransform SpawnTransform(ArrowSpawnPoint->GetComponentRotation(),ArrowSpawnPoint->GetComponentLocation(), FVector(1));
-		Animal = GetWorld()->SpawnActorDeferred<AAnimalActor>(AnimalClass, SpawnTransform, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		PlayEffects();
 
-		Animal->SetFinishTarget(FinishTarget);
+		if (VisualMesh)
+		{
+			VisualMesh->DestroyComponent();
+		}
 		
-		SpawnAudioEffect->Play();
-		SpawnParticleEffect->ActivateSystem();
+		FTransform SpawnTransform(ArrowSpawnPoint->GetComponentRotation(),ArrowSpawnPoint->GetComponentLocation(), FVector(1));
+		AnimalActor = GetWorld()->SpawnActorDeferred<AAnimalActor>(AnimalClass, SpawnTransform, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		if (IsValid(AnimalActor))
+		{
+			if (!IsValid(AnimalActor->GetController()))
+			{
+				AnimalActor->SpawnDefaultController();
+			}
+			AnimalActor->MovementType = MovementType;
+			SetBehaviorValue(AnimalActor);
+		}
 		
-		UGameplayStatics::FinishSpawningActor(Animal, SpawnTransform);
+		
+		UGameplayStatics::FinishSpawningActor(AnimalActor, SpawnTransform);
 
 		bIsAlreadySpawn = true;
 	}
@@ -68,22 +111,8 @@ void AAnimalSpawner::SpawnAnimal()
 
 void AAnimalSpawner::DestroyAnimal()
 {
-	AAnimalActor* AnimalActor = Cast<AAnimalActor>(AnimalClass);
-	AnimalActor->DestroyAnimal();
+	AAnimalActor* Actor = Cast<AAnimalActor>(AnimalClass);
+	Actor->DestroyAnimal();
 
 	bIsAlreadySpawn = false;
 }
-
-/*
-void AAnimalSpawner::ButtonSpawn(TSubclassOf<AClickButton> ButtonActor)
-{
-	if (!ButtonActor)
-		return;
-	
-	FActorSpawnParameters params;
-	params.Owner = this;
-
-	Button = GetWorld()->SpawnActor<AClickButton>(ButtonActor, params);
-	Button->AttachToComponent(ArrowButtonPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-}
-*/

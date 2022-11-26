@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "GameStructs.h"
 #include "AnimalAIController.generated.h"
 
+class AAnimalSpawner;
 class AAnimalActor;
 /**
  * 
@@ -16,19 +18,16 @@ class TESTDEVWORK_API AAnimalAIController : public AAIController
 	GENERATED_BODY()
 
 public:
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaSeconds) override;
+	virtual void SetPawn(APawn* InPawn) override;
+
+	void SetBehaviorValue(FVector SpawnPos, FVector FinishPos, EMovementType MovementType);
 	
 protected:
 	UPROPERTY()
 	AAnimalActor* AnimalPawn;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Movement", Meta = (MakeEditWidget = true))
-	FVector PatrolPoint;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Movement")
-	float MoveAccurency;
+	UPROPERTY()
+	AAnimalSpawner* Spawner;
 	
-	float RotationValue();
 	void Initialize();
 };

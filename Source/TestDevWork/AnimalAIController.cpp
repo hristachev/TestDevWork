@@ -2,53 +2,28 @@
 
 
 #include "AnimalAIController.h"
-
+#include "AnimalSpawner.h"
 #include "AnimalActor.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
-void AAnimalAIController::BeginPlay()
+void AAnimalAIController::SetPawn(APawn* InPawn)
 {
-	Super::BeginPlay();
+	Super::SetPawn(InPawn);
 
-	Initialize();
-}
-
-void AAnimalAIController::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-	if (!AnimalPawn)
-		Initialize();
-	if (!AnimalPawn)
-		return;
-	
-	AnimalPawn->MoveForward(1);
-
-	float RotateValue = RotationValue();
-	AnimalPawn->RotateRight(RotateValue);
-	
-}
-
-float AAnimalAIController::RotationValue()
-{
-	FVector point = PatrolPoint;
-	FVector pawnLocation = AnimalPawn->GetActorLocation();
-
-	FVector moveDirection = point - pawnLocation;
-	moveDirection.Normalize();
-	FVector forwardDirection = AnimalPawn->GetActorForwardVector();
-	FVector rightDirection = AnimalPawn->GetActorRightVector();
-
-	float forwardAngle = FMath::RadiansToDegrees(acosf(FVector::DotProduct(forwardDirection, moveDirection)));
-	float rightAngle = FMath::RadiansToDegrees(acosf(FVector::DotProduct(rightDirection, moveDirection)));
-
-	float RotationValue = 1;
-
-	if(rightAngle > 90)
+	if (IsValid(InPawn))
 	{
-		RotationValue = -RotationValue;
+		Initialize();
 	}
+}
 
-	return RotationValue;
+void AAnimalAIController::SetBehaviorValue(FVector SpawnPos, FVector FinishPos, EMovementType MovementType)
+{
+	if (Blackboard)
+	{
+		Blackboard->SetValueAsVector(SpawnPosition, SpawnPos);
+		Blackboard->SetValueAsVector(FinishPosition, FinishPos);
+		Blackboard->SetValueAsEnum(AIMovement, uint8(MovementType));
+	}
 }
 
 void AAnimalAIController::Initialize()
@@ -58,12 +33,5 @@ void AAnimalAIController::Initialize()
 	if (!AnimalPawn)
 		return;
 
-	FVector pawnLocation = AnimalPawn->GetActorLocation();
-	MoveAccurency = AnimalPawn->GetAccurency();
-	FVector finishPoint = AnimalPawn->GetFinishPoint();
-	
-	
-	UE_LOG(LogTemp, Warning, TEXT("FinishPoint = x: %f , y: %f,z: %f"), finishPoint.X, finishPoint.Y, finishPoint.Z);
-	
-	PatrolPoint.AddBounded(finishPoint);
+	RunBehaviorTree(AnimalPawn->GetBehaviorTree());
 }
