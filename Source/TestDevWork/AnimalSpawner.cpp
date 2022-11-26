@@ -53,7 +53,7 @@ void AAnimalSpawner::SetBehaviorValue(AAnimalActor* Actor)
 	AAnimalAIController* AIController = Cast<AAnimalAIController>(Actor->GetController());
 	if (AIController)
 	{
-		AIController->SetBehaviorValue(GetActorLocation(), FinishTarget->GetActorLocation(), Actor->MovementType);
+		AIController->SetBehaviorValue(ArrowSpawnPoint->GetComponentLocation(), FinishTarget->GetActorLocation(), Actor->MovementType);
 	}
 }
 
