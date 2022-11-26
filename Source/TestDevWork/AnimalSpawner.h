@@ -58,7 +58,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "SpawnEffect")
 	UParticleSystemComponent* SpawnParticleEffect;
 
-	UPROPERTY(EditAnywhere, Category = "FinishEffect")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FinishEffect")
 	UParticleSystemComponent* FinishParticleEffect;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FinishTarget")

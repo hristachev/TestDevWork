@@ -29,7 +29,7 @@ public:
 	
 	void DestroyAnimal();
 
-	UFUNCTION(BlueprintCallable, Category = "FinishEffectS")
+	UFUNCTION(BlueprintCallable, Category = "FinishEffect")
 	void SetPlaySoundAtFinish();
 
 	UFUNCTION(BlueprintCallable, Category = "AI|Spawn")
@@ -40,6 +40,7 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, Category = "AnimalEffects")
 	UAudioComponent* FinishSoundEffect;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI|Components")
 	UBehaviorTree* BehaviorTree;

@@ -33,6 +33,9 @@ AAnimalSpawner::AAnimalSpawner()
 
 	SpawnParticleEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("SpawnParticleEffect"));
 	SpawnParticleEffect->SetAutoActivate(false);
+
+	FinishParticleEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("FinishParticleEffect"));
+	FinishParticleEffect->SetAutoActivate(false);
 }
 
 void AAnimalSpawner::BeginPlay()
@@ -59,15 +62,16 @@ void AAnimalSpawner::PlayEffects()
 {
 	if (SpawnParticleEffect)
 	{
-		SpawnParticleEffect->ActivateSystem(true);
+		
 		SpawnParticleEffect->SetWorldLocation(GetActorLocation());
 		SpawnParticleEffect->SetWorldRotation(GetActorRotation());
+		SpawnParticleEffect->ActivateSystem(true);
 	}
 	if (FinishParticleEffect)
 	{
-		FinishParticleEffect->ActivateSystem(true);
 		FinishParticleEffect->SetWorldLocation(FinishTarget->GetActorLocation());
 		FinishParticleEffect->SetWorldRotation(GetActorRotation());
+		FinishParticleEffect->ActivateSystem(true);
 	}
 
 	if (SpawnAudioEffect)

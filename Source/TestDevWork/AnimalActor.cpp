@@ -4,6 +4,7 @@
 #include "AnimalActor.h"
 #include "LocationMarkerActor.h"
 #include "Components/AudioComponent.h"
+#include "Particles/ParticleSystemComponent.h"
 
 AAnimalActor::AAnimalActor()
 {
@@ -11,6 +12,7 @@ AAnimalActor::AAnimalActor()
 
 	FinishSoundEffect = CreateDefaultSubobject<UAudioComponent>(TEXT("FinishSound"));
 	FinishSoundEffect->SetAutoActivate(false);
+	
 }
 
 UBehaviorTree* AAnimalActor::GetBehaviorTree() const
@@ -37,6 +39,7 @@ void AAnimalActor::SetPlaySoundAtFinish()
 		FinishSoundEffect->Play();
 	}
 }
+
 
 void AAnimalActor::SetMoveTypeWhenSpawn(EMovementType MoveType)
 {
